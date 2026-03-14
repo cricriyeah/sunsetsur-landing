@@ -4,12 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import NextImage from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const FRAME_COUNT = 153;
+
+const WORD_LIST = [
+    "Malecón", "bahía", "atardecer", "horizonte", "plusvalía", "vanguardia",
+    "exclusividad", "confort", "serenidad", "oasis", "inversión", "sustentable",
+    "amplitud", "refugio", "privilegio", "tranquilidad", "brisa",
+    "moderno", "calidad", "patrimonio", "seguridad", "estilo",
+    "conexión", "descanso", "hogar",
+    "sol", "mar",
+    "desierto", "calma", "solidez", "confianza", "futuro", "bienestar",
+    "espacio", "luz", "vista", "proximidad", "vida", "arena", "playa"
+];
 
 export default function AnimatedHero() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,9 +30,34 @@ export default function AnimatedHero() {
 
     // Contexto para animar el index
     const airRender = useRef({ frame: 0 });
+    const [wordLeft, setWordLeft] = useState("");
+    const [wordRight, setWordRight] = useState("");
+    const [showWords, setShowWords] = useState(true);
 
     const currentFrame = (index: number) =>
         `/frames/out_${index.toString().padStart(4, "0")}.webp`;
+
+    // Lógica asíncrona para palabra izquierda (5 segundos)
+    useEffect(() => {
+        const getRandomWord = () => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+        setWordLeft(getRandomWord());
+
+        const interval = setInterval(() => {
+            if (showWords) setWordLeft(getRandomWord());
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [showWords]);
+
+    // Lógica asíncrona para palabra derecha (7 segundos)
+    useEffect(() => {
+        const getRandomWord = () => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+        setWordRight(getRandomWord());
+
+        const interval = setInterval(() => {
+            if (showWords) setWordRight(getRandomWord());
+        }, 7000);
+        return () => clearInterval(interval);
+    }, [showWords]);
 
     // 1. Preload images and Reset Scroll
     useEffect(() => {
@@ -105,7 +141,7 @@ export default function AnimatedHero() {
         // Detectar si es móvil para ajustar offsets
         const isMobile = window.innerWidth < 768;
         const navOffset = isMobile ? 36 : 48; // Offset para cerrar el hueco del logo (24px móvil, 64px desktop aprox)
-        
+
         // 2. GSAP Timeline - Pausada inicialmente
         const tl = gsap.timeline({ paused: true });
 
@@ -125,10 +161,10 @@ export default function AnimatedHero() {
         tl.to(".hero-logo", {
             top: isMobile ? "38px" : "42px",
             left: "50%",
-            scale: isMobile ? 0.25 : 0.35, 
+            scale: isMobile ? 0.25 : 0.35,
             duration: 2,
             ease: "expo.out",
-        }, 0.2); 
+        }, 0.2);
 
         tl.to(".nav-left", {
             x: 0,
@@ -136,10 +172,11 @@ export default function AnimatedHero() {
             ease: "expo.out",
         }, 0.2);
 
-        tl.to(".hero-video", {
+        tl.to(".hero-video, .floating-word", {
             opacity: 0,
             duration: 1,
-            ease: "power2.inOut"
+            ease: "power2.inOut",
+            onStart: () => setShowWords(false)
         }, 0);
 
         tl.to(".nav-right", {
@@ -165,7 +202,7 @@ export default function AnimatedHero() {
         <div ref={containerRef} className="h-[200vh] bg-black w-full relative">
             <div className="sticky top-0 h-screen w-full overflow-hidden">
                 {imagesLoaded < FRAME_COUNT && (
-                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
+                    <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black text-white">
                         <div className="text-sm font-mono tracking-widest mb-4 opacity-50 uppercase">Sunsetsur Studios</div>
                         <div className="text-2xl font-light">Cargando secuencias...</div>
                         <div className="mt-4 w-48 h-[1px] bg-white/20 relative overflow-hidden">
@@ -178,7 +215,51 @@ export default function AnimatedHero() {
                     </div>
                 )}
 
-                <video 
+                {/* Palabras Flotantes */}
+                <div className="absolute inset-0 z-[70] flex items-center justify-center pointer-events-none">
+                    <div className="relative w-full max-w-5xl h-32 flex items-center justify-between px-8 md:px-24">
+                        {/* Palabra Izquierda */}
+                        <div className="flex-1 flex justify-center">
+                            <AnimatePresence mode="wait">
+                                {showWords && (
+                                    <motion.span
+                                        key={`word-left-${wordLeft}`}
+                                        initial={{ opacity: 0, y: -20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 20 }}
+                                        transition={{ duration: 0.8, ease: "easeOut" }}
+                                        className="floating-word text-white text-lg md:text-3xl font-serif tracking-widest lowercase"
+                                    >
+                                        {wordLeft}
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Espacio para el logo (más ancho para no tapar) */}
+                        <div className="w-48 md:w-64" />
+
+                        {/* Palabra Derecha */}
+                        <div className="flex-1 flex justify-center">
+                            <AnimatePresence mode="wait">
+                                {showWords && (
+                                    <motion.span
+                                        key={`word-right-${wordRight}`}
+                                        initial={{ opacity: 0, y: -20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 20 }}
+                                        transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                                        className="floating-word text-white text-lg md:text-3xl font-serif tracking-widest lowercase"
+                                    >
+                                        {wordRight}
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </div>
+
+                <video
                     className="hero-video absolute inset-0 w-full h-full object-cover z-[5]"
                     src="https://res.cloudinary.com/dkofkzzc5/video/upload/v1773451824/Generaci%C3%B3n_de_Video_Completada_fanofc.mp4"
                     autoPlay
