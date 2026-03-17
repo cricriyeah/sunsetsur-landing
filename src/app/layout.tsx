@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Lexend, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+import { Montserrat, Geist_Mono, Literata } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-const lexend = Lexend({
-  variable: "--font-lexend",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
 });
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const literata = Literata({
+  variable: "--font-literata",
   subsets: ["latin"],
+  style: ["normal", "italic"],
 });
 
 const geistMono = Geist_Mono({
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${lexend.variable} ${bricolage.variable} ${geistMono.variable} antialiased`}
+        className={`${montserrat.variable} ${literata.variable} ${geistMono.variable} antialiased`}
       >
         <Navbar />
         {children}

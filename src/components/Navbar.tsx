@@ -1,34 +1,70 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import styles from "./Navbar.module.css";
+import GlassContainer from "./ui/GlassContainer";
 
 export default function Navbar() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Appear when we've scrolled past the hero (approx 100vh)
+      const threshold = window.innerHeight * 0.95;
+      setIsVisible(window.scrollY > threshold);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Don't call handleScroll immediately to avoid race conditions with hydration
+    const timer = setTimeout(handleScroll, 100);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timer);
+    };
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[999] px-4 md:px-8 py-6 bg-transparent text-white uppercase tracking-[0.2em]">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Left Side Links */}
-        <div className="nav-left flex-1 flex justify-end gap-4 md:gap-12 text-[10px] md:text-[14px] font-normal">
-          <Link href="/" className="hover:opacity-70 transition-opacity">
-            HOME
-          </Link>
-          <Link href="/proyectos" className="hover:opacity-70 transition-opacity">
-            PROYECTOS
-          </Link>
-        </div>
-
-        {/* Middle Spacer for Animated Logo */}
-        <div className="w-20 md:w-32 flex justify-center pointer-events-none shrink-0">
-          {/* This space is for the logo to land */}
-          <div className="w-10 h-10" />
-        </div>
-
-        {/* Right Side Links */}
-        <div className="nav-right flex-1 flex justify-start gap-4 md:gap-12 text-[10px] md:text-[14px] font-normal">
-          <Link href="/vision" className="hover:opacity-70 transition-opacity">
-            VISION
-          </Link>
-          <Link href="/ubicacion" className="hover:opacity-70 transition-opacity">
-            UBICACION
-          </Link>
-        </div>
+    <nav className={styles.navbar}>
+      <div className={styles.navbarContent}>
+        <AnimatePresence>
+          {isVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                duration: 0.4
+              }}
+              className={styles.glassWrapper}
+            >
+              <GlassContainer>
+                <div className={styles.container}>
+                  <div className={styles.links}>
+                    <Link href="/" className={styles.navLink}>
+                      HOME
+                    </Link>
+                    <Link href="/proyectos" className={styles.navLink}>
+                      PROYECTOS
+                    </Link>
+                    <Link href="/vision" className={styles.navLink}>
+                      VISION
+                    </Link>
+                  </div>
+                </div>
+              </GlassContainer>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        <Link href="/ubicacion" className={styles.contactButton}>
+          CONTACTANOS
+        </Link>
       </div>
     </nav>
   );

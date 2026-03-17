@@ -1,0 +1,10 @@
+.projects {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 200vh;
+  background-color: #ffffff;
+  z-index: 10;
+}
